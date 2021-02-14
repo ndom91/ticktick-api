@@ -19,9 +19,28 @@ module.exports = class TickTickAPI {
       username: username,
       password: password
     };
-    const result = await axios.post(url, options, {
-      headers: { "Content-Type": "application/json" }
-    });
+    const result = await axios
+      .post(url, options, {
+        headers: {
+          "Content-Type": "application/json",
+          referer: "https://ticktick.com/webapp/",
+          "user-agent":
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
+          "x-device": JSON.stringify({
+            platform: "web",
+            os: "Linux x86_64",
+            device: "Chrome 87.0.4280.88",
+            name: "",
+            version: 3785,
+            channel: "website",
+            campaign: ""
+          })
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        throw new Error("Error Signing In");
+      });
 
     this.cookies = result.headers["set-cookie"];
     this.cookieHeader = this.cookies.join("; ") + ";";
@@ -30,14 +49,14 @@ module.exports = class TickTickAPI {
   }
 
   /**
-   * @description send a request to https://ticktick.com/api/v2/batch/check/{id} endpoint
+   * @description send a request to https://api.ticktick.com/api/v2/batch/check/{id} endpoint
    * @param {number} id
    */
   async _batchCheck(id = 0) {
     if (!this.cookieHeader) {
       throw new Error("Cookie header is not set.");
     }
-    const url = `https://ticktick.com/api/v2/batch/check/${id}`;
+    const url = `https://api.ticktick.com/api/v2/batch/check/${id}`;
 
     return axios.get(url, {
       headers: {
@@ -136,6 +155,7 @@ module.exports = class TickTickAPI {
       })
       .catch(err => {
         console.error(err);
+        throw new Error("Error Creating Task");
       });
   }
 
