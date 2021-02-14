@@ -44,6 +44,24 @@ module.exports = class TickTickAPI {
     });
   }
 
+  /**
+   * @typedef {Object} Status
+   * @property {string} userId
+   * @property {string} username
+   * @property {string} proEndDate
+   * @property {boolean} needSubscribe
+   * @property {string} inboxId
+   * @property {boolean} teamUser
+   * @property {boolean} activeTeamUser
+   * @property {boolean} freeTrial
+   * @property {boolean} ds
+   * @property {boolean} pro
+   */
+
+  /**
+   * Returns all Projects EXCEPT "inbox"
+   * @returns {Status}
+   */
   async getStatus() {
     const url = `https://ticktick.com/api/v2/user/status`;
 
@@ -58,7 +76,6 @@ module.exports = class TickTickAPI {
    * @param {Object} options
    * @param {string} options.name name of the project
    * @param {number} options.status 0 = uncompleted tasks, 2 = completed tasks
-   *
    */
   async getTasks({ projectName, status }) {
     const batch = await this._batchCheck(1);
