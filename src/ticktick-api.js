@@ -15,10 +15,10 @@ module.exports = class TickTickAPI {
 
     const options = {
       username: username,
-      password: password,
+      password: password
     };
     const result = await axios.post(url, options, {
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json" }
     });
 
     this.cookies = result.headers["set-cookie"];
@@ -39,8 +39,18 @@ module.exports = class TickTickAPI {
 
     return axios.get(url, {
       headers: {
-        Cookie: this.cookieHeader,
-      },
+        Cookie: this.cookieHeader
+      }
+    });
+  }
+
+  async getStatus() {
+    const url = `https://ticktick.com/api/v2/user/status`;
+
+    return axios.get(url, {
+      headers: {
+        Cookie: this.cookieHeader
+      }
     });
   }
 
@@ -50,7 +60,7 @@ module.exports = class TickTickAPI {
    * @param {number} options.status 0 = uncompleted tasks, 2 = completed tasks
    *
    */
-  async getTasks({ name, status }) {
+  async getTasks({ projectName, status }) {
     const batch = await this._batchCheck(1);
 
     if (
@@ -62,18 +72,18 @@ module.exports = class TickTickAPI {
 
     let tasks = batch.data.syncTaskBean.update;
 
-    if (name) {
+    if (projectName) {
       const projectId = this._getProjectIdFromProjectProfiles(
         batch.data["projectProfiles"],
-        name
+        projectName
       );
       tasks = batch.data.syncTaskBean.update.filter(
-        (task) => task.projectId === projectId
+        task => task.projectId === projectId
       );
     }
 
     if (status != null && status != undefined) {
-      tasks = tasks.filter((task) => task.status === status);
+      tasks = tasks.filter(task => task.status === status);
     }
 
     return tasks;
@@ -90,7 +100,7 @@ module.exports = class TickTickAPI {
     if (!projectProfiles || projectProfiles.length === 0) {
       throw new Error("No project has been found.");
     }
-    const project = projectProfiles.find((project) => project.name === name);
+    const project = projectProfiles.find(project => project.name === name);
     if (!project) {
       throw new Error(`${name} project was not found.`);
     }
@@ -105,6 +115,7 @@ module.exports = class TickTickAPI {
    */
 
   /**
+   * Returns all Projects EXCEPT "inbox"
    * @returns {Project[]}
    */
   async getProjects() {
@@ -114,7 +125,7 @@ module.exports = class TickTickAPI {
     const url = "https://api.ticktick.com/api/v2/projects";
 
     const headers = {
-      Cookie: this.cookieHeader,
+      Cookie: this.cookieHeader
     };
 
     const request = await axios.get(url, { headers: headers });
@@ -128,7 +139,7 @@ module.exports = class TickTickAPI {
   async getProjectIdFromName(name) {
     const projects = await this.getProjects();
 
-    const project = projects.find((project) => project.name === name);
+    const project = projects.find(project => project.name === name);
 
     if (!project) {
       throw new Error("Project not found.");
@@ -144,19 +155,27 @@ module.exports = class TickTickAPI {
    * @param {Date} options.begin start of the date interval
    * @param {Date} options.end end of the date interval
    */
-  async getCompletedTasks({id = "all", begin = initBeginDate(), end = new Date()}) {
+  async getCompletedTasks({
+    id = "all",
+    begin = initBeginDate(),
+    end = new Date()
+  }) {
     if (!this.cookieHeader) {
       throw new Error("Cookie header is not set.");
     }
 
-    const beginDateString = `${begin.getFullYear()}-${begin.getMonth() + 1}-${begin.getDate()}%20${begin.getUTCHours()}:${begin.getMinutes()}:${begin.getSeconds()}`;
+    const beginDateString = `${begin.getFullYear()}-${
+      begin.getMonth() + 1
+    }-${begin.getDate()}%20${begin.getUTCHours()}:${begin.getMinutes()}:${begin.getSeconds()}`;
 
-    const endDateString = `${end.getFullYear()}-${end.getMonth() + 1}-${end.getDate()}%20${end.getUTCHours()}:${end.getMinutes()}:${end.getSeconds()}`;
-    
+    const endDateString = `${end.getFullYear()}-${
+      end.getMonth() + 1
+    }-${end.getDate()}%20${end.getUTCHours()}:${end.getMinutes()}:${end.getSeconds()}`;
+
     const url = `https://api.ticktick.com/api/v2/project/${id}/completed/?from=${beginDateString}&to=${endDateString}&limit=50`;
 
     const headers = {
-      Cookie: this.cookieHeader,
+      Cookie: this.cookieHeader
     };
 
     const request = await axios.get(url, { headers: headers });
