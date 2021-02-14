@@ -1,4 +1,5 @@
 const axios = require("axios").default;
+const { nanoid } = require("nanoid");
 axios.defaults.withCredentials = true;
 
 module.exports = class TickTickAPI {
@@ -11,7 +12,8 @@ module.exports = class TickTickAPI {
    * @param {string} credentials.password
    */
   async login({ username, password }) {
-    const url = "https://ticktick.com/api/v2/user/signon?wc=true&remember=true";
+    const url =
+      "https://api.ticktick.com/api/v2/user/signon?wc=true&remember=true";
 
     const options = {
       username: username,
@@ -63,13 +65,78 @@ module.exports = class TickTickAPI {
    * @returns {Status}
    */
   async getStatus() {
-    const url = `https://ticktick.com/api/v2/user/status`;
+    const url = `https://api.ticktick.com/api/v2/user/status`;
 
     return axios.get(url, {
       headers: {
         Cookie: this.cookieHeader
       }
     });
+  }
+
+  /**
+   * @typedef {Object} Task
+   * @property {string} content
+   * @property {string} dueDate
+   * @property {number} priority
+   * @property {string} projectId
+   * @property {number} status
+   * @property {Tags[]} tags
+   * @property {string} title
+   */
+  async postTask({
+    content = "",
+    dueDate = null,
+    priority = 0,
+    projectId,
+    status = 0,
+    tags = [],
+    title
+  }) {
+    const url = `https://api.ticktick.com/api/v2/batch/task`;
+    const now = new Date();
+    if (!projectId) {
+      const status = await this.getStatus();
+      projectId = status.data.inboxId;
+    }
+
+    const task = {
+      add: [
+        {
+          assignee: null,
+          content,
+          createdTime: now.toISOString(),
+          dueDate,
+          exDate: [],
+          id: nanoid(),
+          isFloating: false,
+          items: [],
+          kind: null,
+          modifiedTime: now.toISOString(),
+          priority,
+          progress: 0,
+          projectId,
+          reminders: [],
+          sortOrder: null,
+          startDate: null,
+          status,
+          tags,
+          timeZone: null,
+          title
+        }
+      ]
+    };
+
+    return axios
+      .post(url, task, {
+        headers: {
+          Cookie: this.cookieHeader,
+          "Content-Type": "application/json"
+        }
+      })
+      .catch(err => {
+        console.error(err);
+      });
   }
 
   /**

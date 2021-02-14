@@ -1,7 +1,9 @@
+#!/usr/bin/env node
+
 const TickTickAPI = require("./src/ticktick-api.js");
 require("dotenv").config();
 
-async function execute() {
+(async function execute() {
   const api = new TickTickAPI();
 
   await api.login({
@@ -12,10 +14,14 @@ async function execute() {
   // const tasks = await api.getTasks({ name: "Ligue", status: 0 });
   // console.log(tasks);
 
+	await api.postTask({
+    title: 'Test API Task',
+		priority: 1
+	})
+
   const projectID = await api.getProjectIdFromName("Ligue");
   console.log(projectID);
 
   const completedTasks = await api.getCompletedTasks({id: projectID});
   console.log(completedTasks);
-}
-execute();
+})()
